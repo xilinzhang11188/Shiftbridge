@@ -14,12 +14,17 @@ class Settings(BaseSettings):
     GOOGLE_MAPS_API_KEY: str = ""
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
     
     # Server
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
+    
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        """Parse ALLOWED_ORIGINS string into a list"""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
     
     class Config:
         env_file = ".env"
