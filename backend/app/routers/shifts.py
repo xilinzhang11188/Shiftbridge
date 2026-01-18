@@ -45,7 +45,33 @@ async def get_all_shifts(
         query = query.filter(Shift.status == status_filter)
     
     shifts = query.order_by(Shift.day, Shift.start_time).all()
-    return shifts
+    
+    # Enrich shifts with client, site, and worker details
+    enriched_shifts = []
+    for shift in shifts:
+        # Get client info
+        client = db.query(Client).filter(Client.id == shift.client_id).first()
+        client_user = db.query(User).filter(User.id == client.user_id).first() if client else None
+        
+        # Get site info
+        site = db.query(Site).filter(Site.id == shift.site_id).first()
+        
+        # Get worker info if assigned
+        worker_name = None
+        if shift.assigned_worker_id:
+            worker = db.query(Worker).filter(Worker.id == shift.assigned_worker_id).first()
+            if worker:
+                worker_user = db.query(User).filter(User.id == worker.user_id).first()
+                worker_name = worker_user.name if worker_user else None
+        
+        enriched_shifts.append({
+            **shift.__dict__,
+            "client_name": client.company_name if client else None,
+            "site_address": site.address if site else None,
+            "assigned_worker_name": worker_name
+        })
+    
+    return enriched_shifts
 
 @router.get("/{shift_id}", response_model=ShiftDetailResponse)
 async def get_shift(
