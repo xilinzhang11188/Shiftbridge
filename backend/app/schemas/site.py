@@ -7,7 +7,7 @@ class SiteBase(BaseModel):
     services_available: List[int] = []
 
 class SiteCreate(SiteBase):
-    client_id: int
+    pass
 
 class SiteUpdate(BaseModel):
     address: Optional[str] = None

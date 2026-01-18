@@ -75,27 +75,19 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // TODO: Backend auth not fully implemented yet
-      // For now, create mock user data for testing
-      // In production, this would come from the backend response
-      const mockUser = {
-        id: Date.now(),
+      // Store the JWT token and user info from backend response
+      localStorage.setItem('token', data.access_token);
+      
+      const userInfo = {
+        id: data.user_id,
         email: formData.email,
-        name: formData.email.split('@')[0], // Use email prefix as name
-        role: 'admin', // Default to admin for testing
-        phone: '555-0000',
-        address: 'Test Address',
+        name: data.name,
+        role: data.role,
       };
-
-      // Store mock token and user info
-      localStorage.setItem('token', 'mock-token-' + Date.now());
-      localStorage.setItem('user', JSON.stringify(mockUser));
-
-      // Show success message
-      alert(`Login successful! Logging in as ${mockUser.role}...`);
+      localStorage.setItem('user', JSON.stringify(userInfo));
 
       // Redirect based on role
-      switch (mockUser.role) {
+      switch (data.role) {
         case 'admin':
           router.push('/admin/dashboard');
           break;

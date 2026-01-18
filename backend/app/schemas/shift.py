@@ -33,6 +33,9 @@ class ShiftResponse(ShiftBase):
     created_by: int
     created_at: datetime
     updated_at: datetime
+    client_name: Optional[str] = None
+    site_address: Optional[str] = None
+    assigned_worker_name: Optional[str] = None
     
     class Config:
         from_attributes = True
