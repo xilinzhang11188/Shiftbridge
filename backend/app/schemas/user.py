@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 from app.models.user import UserRole, LicenseType
 
@@ -49,6 +49,7 @@ class ClientResponse(BaseModel):
     company_name: str
     requested_services: List[int]
     user: UserResponse
+    sites: Optional[List[Any]] = []
     
     class Config:
         from_attributes = True

@@ -17,6 +17,62 @@ from app.utils.auth import (
 
 router = APIRouter()
 
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register_unified(request_data: dict, db: Session = Depends(get_db)):
+    """Unified registration endpoint that routes based on role"""
+    role = request_data.get("role")
+    
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role is required"
+        )
+    
+    # Route to appropriate registration based on role
+    if role == "client":
+        client_data = ClientCreate(**request_data)
+        return await register_client(client_data, db)
+    elif role == "worker":
+        worker_data = WorkerCreate(**request_data)
+        return await register_worker(worker_data, db)
+    elif role == "admin":
+        # For admin registration, we'll allow it without authentication for now
+        # In production, you'd want to require admin authentication
+        admin_data = AdminCreate(**request_data)
+        
+        # Check if email already exists
+        existing_user = db.query(User).filter(User.email == admin_data.email).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # Create user
+        user = User(
+            email=admin_data.email,
+            hashed_password=get_password_hash(admin_data.password),
+            role=UserRole.ADMIN,
+            name=admin_data.name,
+            address=admin_data.address,
+            phone=admin_data.phone
+        )
+        db.add(user)
+        db.flush()
+        
+        # Create admin profile
+        admin = Admin(user_id=user.id)
+        db.add(admin)
+        db.commit()
+        db.refresh(user)
+        
+        return user
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid role: {role}"
+        )
+
 @router.post("/register/client", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_client(client_data: ClientCreate, db: Session = Depends(get_db)):
     """Register a new client"""

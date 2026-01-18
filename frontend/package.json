@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:3001": "next dev -p 3001",
+    "dev": "node api.js && next dev",
+    "dev:3001": "node api.js && next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "node api.js && next start",
     "lint": "next lint"
   },
   "dependencies": {

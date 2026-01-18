@@ -26,12 +26,28 @@ async def get_all_clients(
     result = []
     for client in clients:
         user = db.query(User).filter(User.id == client.user_id).first()
+        sites = db.query(Site).filter(Site.client_id == client.id).all()
+        
+        # Convert sites to dictionaries for proper JSON serialization
+        sites_list = [
+            {
+                "id": site.id,
+                "address": site.address,
+                "client_id": site.client_id,
+                "latitude": site.latitude,
+                "longitude": site.longitude,
+                "services_available": site.services_available
+            }
+            for site in sites
+        ]
+        
         client_dict = {
             "id": client.id,
             "user_id": client.user_id,
             "company_name": client.company_name,
             "requested_services": client.requested_services,
-            "user": user
+            "user": user,
+            "sites": sites_list
         }
         result.append(client_dict)
     
@@ -60,13 +76,30 @@ async def get_client(
         )
     
     user = db.query(User).filter(User.id == client.user_id).first()
-    return {
+    sites = db.query(Site).filter(Site.client_id == client_id).all()
+    
+    # Convert sites to dictionaries for proper JSON serialization
+    sites_list = [
+        {
+            "id": site.id,
+            "address": site.address,
+            "client_id": site.client_id,
+            "latitude": site.latitude,
+            "longitude": site.longitude,
+            "services_available": site.services_available
+        }
+        for site in sites
+    ]
+    
+    result = {
         "id": client.id,
         "user_id": client.user_id,
         "company_name": client.company_name,
         "requested_services": client.requested_services,
-        "user": user
+        "user": user,
+        "sites": sites_list
     }
+    return result
 
 @router.put("/{client_id}", response_model=ClientResponse)
 async def update_client(
@@ -109,12 +142,29 @@ async def update_client(
     db.refresh(client)
     db.refresh(user)
     
+    # Fetch sites for the response
+    sites = db.query(Site).filter(Site.client_id == client_id).all()
+    
+    # Convert sites to dictionaries for proper JSON serialization
+    sites_list = [
+        {
+            "id": site.id,
+            "address": site.address,
+            "client_id": site.client_id,
+            "latitude": site.latitude,
+            "longitude": site.longitude,
+            "services_available": site.services_available
+        }
+        for site in sites
+    ]
+    
     return {
         "id": client.id,
         "user_id": client.user_id,
         "company_name": client.company_name,
         "requested_services": client.requested_services,
-        "user": user
+        "user": user,
+        "sites": sites_list
     }
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
